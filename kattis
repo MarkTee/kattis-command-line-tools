@@ -8,8 +8,8 @@ convenient manner.
 
 Current features include:
 
-- setup: Provisions a problem directory by downloading sample data,
-         standardizing their filenames, and creating a default solution file.
+- new: Provisions a problem directory by downloading sample data,
+       standardizing their filenames, and creating a default solution file.
 """
 
 import argparse
@@ -31,9 +31,9 @@ class Kattis():
             usage='''kattis <command> [<args>]
 
 Commands:
-    setup    Provisions a problem directory by downloading sample data,
-             standardizing their filenames, and creating a default solution
-             file.
+    new    Provisions a problem directory by downloading sample data,
+           standardizing their filenames, and creating a default solution
+           file.
 ''')
         parser.add_argument('command')
 
@@ -43,7 +43,7 @@ Commands:
             sys.exit(1)
 
         # ensure the provided command exists
-        args = parser.parse_args()
+        args = parser.parse_args(sys.argv[1:2])
         if not hasattr(self, args.command):
             parser.print_usage()
             print("\nInvalid command. "
@@ -53,22 +53,23 @@ Commands:
         # invoke the valid command's corresponding method
         getattr(self, args.command)()
 
-    def setup(self):
+    def new(self):
         '''Obtains sample data from Kattis.com for a given problem'''
-        parser = argparse.ArgumentParser(usage='''kattis setup <problem_id>
+        parser = argparse.ArgumentParser(usage='''kattis new <problem_id>
 
 Arguments:
     problem_id - A valid Kattis Problem ID. Problem IDs can be found in the
-                top-right corner of a problem's description page.
+                 top-right corner of a problem's description page on
+                 open.kattis.com.
 
 ''')
-        parser.add_argument('problem_id', type=str)
+        parser.add_argument('problem_id')
 
-        # ensure that only a single problem_id has been provided
+        # ensure that a single problem_id has been provided
         if len(sys.argv) != 3:
             parser.print_usage()
             print("\nPlease provide a single Problem ID.")
-            exit(1)
+            sys.exit(1)
 
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
