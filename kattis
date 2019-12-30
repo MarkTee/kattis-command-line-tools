@@ -21,7 +21,6 @@ import zipfile
 import requests
 import yaml
 
-
 class Kattis():
     '''
     Use argparse to allow the user to easily interact with Kattis.com
@@ -41,15 +40,15 @@ Commands:
         # display help if a command hasn't been provided
         if len(sys.argv) == 1:
             parser.print_usage()
-            exit(1)
+            sys.exit(1)
 
         # ensure the provided command exists
-        args = parser.parse_args(sys.argv[1:2])
+        args = parser.parse_args()
         if not hasattr(self, args.command):
             parser.print_usage()
             print("\nInvalid command. "
                   "Please choose a command from the list above.")
-            exit(1)
+            sys.exit(1)
 
         # invoke the valid command's corresponding method
         getattr(self, args.command)()
