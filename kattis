@@ -3,8 +3,8 @@
 """
 Kattis Command Line Tools
 
-This command line interface allows users to interact with Kattis.com in a more
-convenient manner.
+This command line interface allows users to interact with open.kattis.com in a
+more convenient manner.
 
 Current features include:
 
@@ -23,7 +23,7 @@ import yaml
 
 class Kattis():
     '''
-    Use argparse to allow the user to easily interact with Kattis.com
+    A utility class that uses argparse to run different commands.
     '''
 
     def __init__(self):
@@ -54,7 +54,9 @@ Commands:
         getattr(self, args.command)()
 
     def new(self):
-        '''Obtains sample data from Kattis.com for a given problem'''
+        '''For a given Kattis problem, obtains sample data, standardizes their
+        filenames, and creates a default solution file.
+        '''
         parser = argparse.ArgumentParser(usage='''kattis new <problem_id>
 
 Arguments:
@@ -77,10 +79,10 @@ Arguments:
         print('''Problem ID: {}\nProblem URL: {}\n'''.format(problem.id,
                                                              problem.url))
 
-        # verify that the given problem exists on Kattis
+        # verify that the given problem exists on open.kattis.com
         problem.confirm_problem_exists()
 
-        # download sample data
+        # download problem sample data
         problem.download_sample_data()
 
         # standardize sample data filenames
@@ -89,10 +91,10 @@ Arguments:
 
 class Problem():
     '''
-    Represents a problem on Kattis.com
+    Represents a Kattis problem.
 
     Args:
-        problem_id (str): The Problem's ID on Kattis.com
+        problem_id (str): The problem's ID on open.kattis.com
 
     Attributes:
         url (str): The URL for the problem's description page
@@ -104,32 +106,18 @@ class Problem():
         self.url = 'https://open.kattis.com/problems/' + self.id
         self.directory = "{}/{}".format(os.getcwd(), self.id)
 
-        # attempt to read config file for use in setup
-        # kattis_config = os.path.dirname(os.path.realpath(__file__)) + '/kattis.yaml'
-        # with open(kattis_config, 'r') as stream:
-        #     try:
-        #         for key, value in yaml.safe_load(stream):
-        #             print(key, value)
-        #     except yaml.YAMLError as exc:
-        #         print(exc)
-
-        # print(type(config_values))
-        # print(config_values[kattis_directory])
-        # print(config_values[default_extension])
-
     def confirm_problem_exists(self):
-        '''Confirms that the problem actually exists on Kattis.com'''
+        '''Confirms that the problem actually exists on open.kattis.com.'''
         r = requests.get(self.url)
         if r.status_code == 404:
-            print("404 Error Received. "
-                  "Please confirm that you have entered a valid "
-                  "Kattis Problem ID.")
-            exit(1)
+            print("Problem not found.\nPlease confirm that you have entered a "
+                  "valid Kattis Problem ID.")
+            sys.exit(1)
         r.raise_for_status()  # catch other errors
 
     def download_sample_data(self):
-        '''Downloads problem's sample data and places them in the problem
-        directory
+        '''Downloads problem's sample data and places them in the problem's
+        directory.
         '''
         print("Downloading sample data files to: "
               "\n{}\n".format(self.directory))
@@ -156,14 +144,17 @@ Please download these problems manually.''')
             exit(1)
 
     def standardize_sample_data(self):
-        '''Attempts to standardize the sample data's filenames
+        '''Attempts to standardize the sample data's filenames.
 
         Kattis problems' sample data don't use standard filenames, which can
         sometimes be annoying when trying to pass them into your solution.
 
         This method attempts to enumerate the sample data in the order that
-        they are given, in order to make testing problem solutions more
-        convenient.
+        they are given, in order to make manually testing problem solutions
+        more convenient.
+
+        Almost all Kattis problems' input files use the '.in' extension. This
+        method will fail if a different extension is used.
         '''
         print("Standardizing filenames...\n")
 
