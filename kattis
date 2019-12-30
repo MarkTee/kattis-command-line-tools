@@ -126,7 +126,7 @@ class Problem():
         if os.path.isdir(self.directory):
             print("WARNING: Problem directory already exists. "
                   "Download aborted.")
-            exit(1)
+            sys.exit(1)
 
         # attempt to download the sample data .zip
         sample_data_url = self.url + '/file/statement/samples.zip'
@@ -140,8 +140,8 @@ class Problem():
             print('''There was an error downloading the sample data.
 Do the samples follow the standard Kattis format? Some problems, such as those
 related to machine learning, handle sample data differently.
-Please download these problems manually.''')
-            exit(1)
+Please download these problems' data manually.''')
+            sys.exit(1)
 
     def standardize_sample_data(self):
         '''Attempts to standardize the sample data's filenames.
