@@ -39,6 +39,7 @@ class Config():
             try:
                 config_path = os.path.join(directory, 'kattis.yaml')
                 with open(config_path) as config_file:
+                    # TODO: Ensure config's yaml is well-formed
                     self.values = yaml.safe_load(config_file)
                 break
 
@@ -46,6 +47,7 @@ class Config():
                 # TypeError catches undefined environment variable
                 pass
 
+        # TODO: Handle missing config files
         if self.values is None:
             print("A config file wasn't found.")
             sys.exit(1)
@@ -56,6 +58,7 @@ class Kattis():
 
     def __init__(self):
         self.config = Config()
+        self.kattis_directory = self.config.values['kattis_directory']
 
         parser = argparse.ArgumentParser(
             usage='''kattis <command> [<args>]
@@ -108,7 +111,7 @@ Arguments:
 
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
-        problem = Problem(args.problem_id)
+        problem = Problem(args.problem_id, self.kattis_directory)
         print("Problem ID: {}\nProblem URL: {}\n".format(problem.problem_id,
                                                          problem.url))
 
@@ -142,7 +145,7 @@ Arguments:
 
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
-        problem = Problem(args.problem_id)
+        problem = Problem(args.problem_id, self.kattis_directory)
         print("Testing problem '{}':".format(problem.problem_id))
 
 
@@ -158,10 +161,11 @@ class Problem():
         directory (str): The local directory where problem data is stored
     """
 
-    def __init__(self, problem_id):
+    def __init__(self, problem_id, kattis_directory):
         self.problem_id = problem_id
         self.url = 'https://open.kattis.com/problems/' + self.problem_id
-        self.directory = "{}/{}".format(os.getcwd(), self.problem_id)
+        self.directory = "{}/{}".format(os.path.expanduser(kattis_directory),
+                                        self.problem_id)
 
     def confirm_problem_exists(self):
         """Confirms that the problem actually exists on open.kattis.com."""
@@ -176,8 +180,7 @@ class Problem():
         """Downloads problem's sample data and places them in the problem's
         directory.
         """
-        print("Downloading sample data files to: "
-              "\n{}\n".format(self.directory))
+        print("Downloading sample data files to: \n{}\n".format(self.directory))
 
         # abort download if the problem directory already exists
         if os.path.isdir(self.directory):

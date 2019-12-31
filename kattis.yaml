@@ -1,3 +1,3 @@
-kattis_directory = '~/kattis'
-default_extension = '.py'
-default_run_command = 'python3'
+kattis_directory: '~/kattis'
+default_extension: '.py'
+default_run_command: 'python3'
