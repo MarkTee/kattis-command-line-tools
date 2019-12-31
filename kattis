@@ -168,6 +168,7 @@ Arguments:
         input_files, output_files = problem.get_sample_data_files()
 
         # run the solution file against each test case
+        passed = 0
         for i, input_file in enumerate(input_files):
             solution_output = Popen('{} {} < {}'.format(self.default_run_command,
                                                         solution_file,
@@ -183,10 +184,16 @@ Arguments:
             # print test results
             if solution_output == expected_output:
                 print("\033[92m{} passed! ✓\033[0m".format(input_file))
+                passed += 1
             else:
                 print("\033[91m{} failed! ✗\033[0m".format(input_file))
                 print("Expected output:\n{}".format(expected_output))
                 print("Solution output:\n{}".format(solution_output))
+
+        if passed < len(input_files):
+            print("\n\033[91m{}/{} test cases passed.\033[0m".format(passed, len(input_files)))
+        else:
+            print("\n\033[92mAll test cases passed.\033[0m")
 
         sys.exit(1)
 
