@@ -60,6 +60,8 @@ class Kattis():
     def __init__(self):
         self.config = Config()
         self.kattis_directory = self.config.values['kattis_directory']
+        self.default_extension = self.config.values['default_extension']
+        self.default_run_command = self.config.values['default_run_command']
 
         parser = argparse.ArgumentParser(
             usage='''kattis <command> [<args>]
@@ -149,8 +151,27 @@ Arguments:
         problem = Problem(args.problem_id, self.kattis_directory)
         print("Testing '{}':".format(problem.problem_id))
 
+        solution_file = '{}/{}{}'.format(problem.directory,
+                                         problem.problem_id,
+                                         self.default_extension)
+
+        # ensure solution file exists
+        if not os.path.exists(solution_file):
+            print("Solution file not found. Are you using the extension defined"
+                  " in the config file?")
+            sys.exit(1)
+
         # get sample data files
         input_files, output_files = problem.get_sample_data_files()
+
+        # run the solution file against each test case
+        for input_file in input_files:
+            test_case = Popen('{} {} < {}'.format(self.default_run_command,
+                                                  solution_file,
+                                                  input_file),
+                              shell=True,
+                              stdout=PIPE)
+            print(test_case.communicate())
         sys.exit(1)
 
 
@@ -237,12 +258,12 @@ Please download these problems' data manually.''')
 
         # rename input files
         for i, file in enumerate(input_files):
-            os.rename("{}/{}".format(self.directory, file),
+            os.rename('{}/{}'.format(self.directory, file),
                       '{}/{}.in'.format(self.directory, i + 1))
 
         # rename output files
         for i, file in enumerate(output_files):
-            os.rename("{}/{}".format(self.directory, file),
+            os.rename('{}/{}'.format(self.directory, file),
                       '{}/{}.ans'.format(self.directory, i + 1))
 
         print("Standardization complete.")
@@ -250,7 +271,7 @@ Please download these problems' data manually.''')
     def get_sample_data_files(self):
         """Get the names of the sample data's input and output files."""
         try:
-            files = ['{}/{}'.format(self.directory, self.problem_id) + file for file in os.listdir(self.directory)]
+            files = [('{}/{}'.format(self.directory, file)) for file in os.listdir(self.directory)]
             # extract standardized sample data
             input_files = sorted(list(filter(lambda file: file[-3:] == '.in', files)))
             output_files = sorted(list(filter(lambda file: file[-4:] == '.ans', files)))
