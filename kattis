@@ -18,6 +18,8 @@ import os
 import sys
 import zipfile
 
+from subprocess import Popen, PIPE
+
 import requests
 import yaml
 
@@ -248,11 +250,12 @@ Please download these problems' data manually.''')
     def get_sample_data_files(self):
         """Get the names of the sample data's input and output files."""
         try:
-            files = os.listdir(self.directory)
+            files = ['{}/{}'.format(self.directory, self.problem_id) + file for file in os.listdir(self.directory)]
             # extract standardized sample data
-            input_files = list(filter(lambda file: file[-3:] == '.in', files))
-            output_files = list(filter(lambda file: file[-4:] == '.ans', files))
+            input_files = sorted(list(filter(lambda file: file[-3:] == '.in', files)))
+            output_files = sorted(list(filter(lambda file: file[-4:] == '.ans', files)))
             return input_files, output_files
+
         except FileNotFoundError:
             print("Problem not found. Please ensure the problem directory and "
                   "sample data exists.")
