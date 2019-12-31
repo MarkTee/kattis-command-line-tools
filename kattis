@@ -32,9 +32,12 @@ class Kattis():
             usage='''kattis <command> [<args>]
 
 Commands:
-    new    Provisions a problem directory by downloading sample data,
-           standardizing their filenames, and creating a default solution
-           file.
+    new     Provisions a problem directory by downloading sample data,
+            standardizing their filenames, and creating a default solution
+            file.
+
+    test    Tests a Kattis problem (i.e. compares a solution file's output to
+            the expected output given in a problem's sample data).
 ''')
         parser.add_argument('command')
 
@@ -77,8 +80,8 @@ Arguments:
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
         problem = Problem(args.problem_id)
-        print('''Problem ID: {}\nProblem URL: {}\n'''.format(problem.id,
-                                                             problem.url))
+        print("Problem ID: {}\nProblem URL: {}\n".format(problem.problem_id,
+                                                         problem.url))
 
         # verify that the given problem exists on open.kattis.com
         problem.confirm_problem_exists()
@@ -88,6 +91,30 @@ Arguments:
 
         # standardize sample data filenames
         problem.standardize_sample_data()
+
+    def test(self):
+        """Tests a Kattis problem (i.e. compares a solution file's output to
+        the expected output given in a problem's sample data).
+        """
+        parser = argparse.ArgumentParser(usage='''kattis test <problem_id>
+
+Arguments:
+    problem_id - A valid Kattis Problem ID. Problem IDs can be found in the
+                 top-right corner of a problem's description page on
+                 open.kattis.com.
+''')
+        parser.add_argument('problem_id')
+
+        # ensure that a single problem_id has been provided
+        if len(sys.argv) != 3:
+            parser.print_usage()
+            print("\nPlease provide a single Problem ID.")
+            sys.exit(1)
+
+        # parse args to get Problem ID
+        args = parser.parse_args(sys.argv[2:])
+        problem = Problem(args.problem_id)
+        print("Testing problem '{}':".format(problem.problem_id))
 
 
 class Problem():
