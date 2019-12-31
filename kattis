@@ -145,8 +145,10 @@ Arguments:
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
         problem = Problem(args.problem_id, self.kattis_directory)
-        print("Testing '{}'.".format(problem.problem_id))
-        problem.get_test_cases()
+        print("Testing '{}':".format(problem.problem_id))
+
+        # get sample data files
+        input_files, output_files = problem.get_sample_data_files()
         sys.exit(1)
 
 
@@ -243,17 +245,18 @@ Please download these problems' data manually.''')
 
         print("Standardization complete.")
 
-    def get_test_cases(self):
+    def get_sample_data_files(self):
+        """Get the names of the sample data's input and output files."""
         try:
             files = os.listdir(self.directory)
             # extract standardized sample data
-            files = list(filter(lambda file: file[-4:] == '.ans' or file[-3:] == '.in', files))
+            input_files = list(filter(lambda file: file[-3:] == '.in', files))
+            output_files = list(filter(lambda file: file[-4:] == '.ans', files))
+            return input_files, output_files
         except FileNotFoundError:
             print("Problem not found. Please ensure the problem directory and "
                   "sample data exists.")
             sys.exit(1)
-
-
 
 
 if __name__ == '__main__':
