@@ -31,18 +31,22 @@ class Config():
         - The current working directory
         - The user's home directory
         - A location specified by the environment variable KATTIS_CONF
+
+        When it's found, load its values and store them in a dict.
         '''
-        self.config_file = None
-        for directory in os.path.expanduser('~'), os.environ.get("KATTIS_CONF"):
+        self.values = None
+        for directory in os.getcwd(), os.path.expanduser('~'), os.environ.get("KATTIS_CONF"):
             try:
-                possible_config_path = os.path.join(directory, 'kattis.yaml')
-                with open(possible_config_path) as f:
-                    self.config_file = possible_config_path
+                config_path = os.path.join(directory, 'kattis.yaml')
+                with open(config_path) as config_file:
+                    self.values = yaml.safe_load(config_file)
                 break
+
             except (TypeError, FileNotFoundError):
                 # TypeError catches undefined environment variable
                 pass
-        if self.config_file is None:
+
+        if self.values is None:
             print("A config file wasn't found.")
             sys.exit(1)
 
