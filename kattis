@@ -21,10 +21,11 @@ import zipfile
 import requests
 import yaml
 
+
 class Kattis():
-    '''
+    """
     A utility class that uses argparse to run different commands.
-    '''
+    """
 
     def __init__(self):
         parser = argparse.ArgumentParser(
@@ -54,9 +55,9 @@ Commands:
         getattr(self, args.command)()
 
     def new(self):
-        '''For a given Kattis problem, obtains sample data, standardizes their
+        """For a given Kattis problem, obtains sample data, standardizes their
         filenames, and creates a default solution file.
-        '''
+        """
         parser = argparse.ArgumentParser(usage='''kattis new <problem_id>
 
 Arguments:
@@ -90,7 +91,7 @@ Arguments:
 
 
 class Problem():
-    '''
+    """
     Represents a Kattis problem.
 
     Args:
@@ -99,15 +100,15 @@ class Problem():
     Attributes:
         url (str): The URL for the problem's description page
         directory (str): The local directory where problem data is stored
-    '''
+    """
 
     def __init__(self, problem_id):
-        self.id = problem_id
-        self.url = 'https://open.kattis.com/problems/' + self.id
-        self.directory = "{}/{}".format(os.getcwd(), self.id)
+        self.problem_id = problem_id
+        self.url = 'https://open.kattis.com/problems/' + self.problem_id
+        self.directory = "{}/{}".format(os.getcwd(), self.problem_id)
 
     def confirm_problem_exists(self):
-        '''Confirms that the problem actually exists on open.kattis.com.'''
+        """Confirms that the problem actually exists on open.kattis.com."""
         r = requests.get(self.url)
         if r.status_code == 404:
             print("Problem not found.\nPlease confirm that you have entered a "
@@ -116,9 +117,9 @@ class Problem():
         r.raise_for_status()  # catch other errors
 
     def download_sample_data(self):
-        '''Downloads problem's sample data and places them in the problem's
+        """Downloads problem's sample data and places them in the problem's
         directory.
-        '''
+        """
         print("Downloading sample data files to: "
               "\n{}\n".format(self.directory))
 
@@ -144,7 +145,7 @@ Please download these problems' data manually.''')
             sys.exit(1)
 
     def standardize_sample_data(self):
-        '''Attempts to standardize the sample data's filenames.
+        """Attempts to standardize the sample data's filenames.
 
         Kattis problems' sample data don't use standard filenames, which can
         sometimes be annoying when trying to pass them into your solution.
@@ -155,7 +156,7 @@ Please download these problems' data manually.''')
 
         Almost all Kattis problems' input files use the '.in' extension. This
         method will fail if a different extension is used.
-        '''
+        """
         print("Standardizing filenames...\n")
 
         # attempt to determine which file extensions are used for input/output
