@@ -22,12 +22,37 @@ import requests
 import yaml
 
 
-class Kattis():
-    """
-    A utility class that uses argparse to run different commands.
-    """
+class Config():
+    """A data class to help manage user configuration values."""
 
     def __init__(self):
+        '''
+        Search for the user config file in the following order:
+        - The current working directory
+        - The user's home directory
+        - A location specified by the environment variable KATTIS_CONF
+        '''
+        self.config_file = None
+        for directory in os.path.expanduser('~'), os.environ.get("KATTIS_CONF"):
+            try:
+                possible_config_path = os.path.join(directory, 'kattis.yaml')
+                with open(possible_config_path) as f:
+                    self.config_file = possible_config_path
+                break
+            except (TypeError, FileNotFoundError):
+                # TypeError catches undefined environment variable
+                pass
+        if self.config_file is None:
+            print("A config file wasn't found.")
+            sys.exit(1)
+
+
+class Kattis():
+    """A utility class that uses argparse to run different commands."""
+
+    def __init__(self):
+        self.config = Config()
+
         parser = argparse.ArgumentParser(
             usage='''kattis <command> [<args>]
 
