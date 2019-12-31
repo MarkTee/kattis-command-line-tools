@@ -8,8 +8,11 @@ more convenient manner.
 
 Current features include:
 
-- new: Provisions a problem directory by downloading sample data,
-       standardizing their filenames, and creating a default solution file.
+- new:   Provisions a problem directory by downloading sample data,
+         standardizing their filenames, and creating a default solution file.
+
+- test:  Tests a Kattis problem (i.e. compares a solution file's output to the
+         the expected output given in a problem's sample data).
 """
 
 import argparse
@@ -149,7 +152,7 @@ Arguments:
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
         problem = Problem(args.problem_id, self.kattis_directory)
-        print("Testing '{}':".format(problem.problem_id))
+        print("Testing '{}':\n".format(problem.problem_id))
 
         solution_file = '{}/{}{}'.format(problem.directory,
                                          problem.problem_id,
@@ -165,13 +168,26 @@ Arguments:
         input_files, output_files = problem.get_sample_data_files()
 
         # run the solution file against each test case
-        for input_file in input_files:
-            test_case = Popen('{} {} < {}'.format(self.default_run_command,
-                                                  solution_file,
-                                                  input_file),
-                              shell=True,
-                              stdout=PIPE)
-            print(test_case.communicate())
+        for i, input_file in enumerate(input_files):
+            solution_output = Popen('{} {} < {}'.format(self.default_run_command,
+                                                        solution_file,
+                                                        input_file),
+                                    shell=True,
+                                    stdout=PIPE)
+            expected_output = Popen('cat {}'.format(output_files[i]),
+                                    shell=True,
+                                    stdout=PIPE)
+            solution_output = solution_output.communicate()[0].decode()
+            expected_output = expected_output.communicate()[0].decode()
+
+            # print test results
+            if solution_output == expected_output:
+                print("\033[92m{} passed! ✓\033[0m".format(input_file))
+            else:
+                print("\033[91m{} failed! ✗\033[0m".format(input_file))
+                print("Expected output:\n{}".format(expected_output))
+                print("Solution output:\n{}".format(solution_output))
+
         sys.exit(1)
 
 
