@@ -28,14 +28,13 @@ class Config():
     def __init__(self):
         '''
         Search for the user config file in the following order:
-        - The current working directory
         - The user's home directory
         - A location specified by the environment variable KATTIS_CONF
 
         When it's found, load its values and store them in a dict.
         '''
         self.values = None
-        for directory in os.getcwd(), os.path.expanduser('~'), os.environ.get("KATTIS_CONF"):
+        for directory in os.path.expanduser('~'), os.environ.get("KATTIS_CONF"):
             try:
                 config_path = os.path.join(directory, 'kattis.yaml')
                 with open(config_path) as config_file:
@@ -146,7 +145,9 @@ Arguments:
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
         problem = Problem(args.problem_id, self.kattis_directory)
-        print("Testing problem '{}':".format(problem.problem_id))
+        print("Testing '{}'.".format(problem.problem_id))
+        problem.get_test_cases()
+        sys.exit(1)
 
 
 class Problem():
@@ -241,6 +242,18 @@ Please download these problems' data manually.''')
                       '{}/{}.ans'.format(self.directory, i + 1))
 
         print("Standardization complete.")
+
+    def get_test_cases(self):
+        try:
+            files = os.listdir(self.directory)
+            # extract standardized sample data
+            files = list(filter(lambda file: file[-4:] == '.ans' or file[-3:] == '.in', files))
+        except FileNotFoundError:
+            print("Problem not found. Please ensure the problem directory and "
+                  "sample data exists.")
+            sys.exit(1)
+
+
 
 
 if __name__ == '__main__':
