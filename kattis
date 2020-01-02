@@ -78,8 +78,6 @@ class Kattis():
     def __init__(self):
         self.config = Config()
         self.kattis_directory = self.config.values['kattis_directory']
-        self.default_extension = self.config.values['default_extension']
-        self.default_run_command = self.config.values['default_run_command']
 
         parser = argparse.ArgumentParser(
             usage='''kattis <command> [<args>]
@@ -171,14 +169,12 @@ Arguments:
                                            problem.problem_id,
                                            Colors.RESET))
 
-        solution_file = '{}/{}{}'.format(problem.directory,
-                                         problem.problem_id,
-                                         self.default_extension)
+        solution_file = '{}/{}.py'.format(problem.directory,
+                                         problem.problem_id)
 
         # ensure solution file exists
         if not os.path.exists(solution_file):
-            print("Solution file not found. Are you using the extension "
-                  "defined in the config file?")
+            print("Solution file not found.")
             sys.exit(1)
 
         # get sample data files
@@ -187,9 +183,8 @@ Arguments:
         # run the solution file against each test case
         passed = 0
         for i, input_file in enumerate(input_files):
-            solution_output = Popen('{} {} < {}'.format(self.default_run_command,
-                                                        solution_file,
-                                                        input_file),
+            solution_output = Popen('python3 {} < {}'.format(solution_file,
+                                                             input_file),
                                     shell=True,
                                     stdout=PIPE)
             expected_output = Popen('cat {}'.format(output_files[i]),
@@ -210,6 +205,7 @@ Arguments:
                                                 Colors.RESET))
                 print("Expected output:\n{}".format(expected_output))
                 print("Solution output:\n{}".format(solution_output))
+
         if passed < len(input_files):
             print("{}{}/{} test cases passed.{}".format(Colors.RED,
                                                         passed,
