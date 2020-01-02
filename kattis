@@ -3,13 +3,16 @@
 """
 Kattis Command Line Tools
 
-This command line interface allows users to interact with Kattis.com in a more
-convenient manner.
+This command line interface makes writing Python solutions for open.kattis.com
+easier.
 
 Current features include:
 
-- setup: Provisions a problem directory by downloading sample data,
+- new:   Provisions a problem directory by downloading sample data,
          standardizing their filenames, and creating a default solution file.
+
+- test:  Tests a Kattis problem (i.e. compares a solution file's output to the
+         the expected output given in a problem's sample data).
 """
 
 import argparse
@@ -18,30 +21,45 @@ import os
 import sys
 import zipfile
 
+from subprocess import Popen, PIPE
+
 import requests
 import yaml
 
 
+class Colors():
+    """A data class that holds ANSI escape sequences, which are used to
+    colourize terminal output.
+    """
+    BOLD = '\033[1m'
+    RESET = '\033[0m'
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+
+
 class Kattis():
-    '''
-    Use argparse to allow the user to easily interact with Kattis.com
-    '''
+    """A utility class that uses argparse to run different commands."""
 
     def __init__(self):
+        self.kattis_directory = '~/kattis'
+
         parser = argparse.ArgumentParser(
             usage='''kattis <command> [<args>]
 
 Commands:
-    setup    Provisions a problem directory by downloading sample data,
-             standardizing their filenames, and creating a default solution
-             file.
+    new     Provisions a problem directory by downloading sample data,
+            standardizing their filenames, and creating a default solution
+            file.
+
+    test    Tests a Kattis problem (i.e. compares a solution file's outputs to
+            the expected outputs given in a problem's sample data).
 ''')
         parser.add_argument('command')
 
         # display help if a command hasn't been provided
         if len(sys.argv) == 1:
             parser.print_usage()
-            exit(1)
+            sys.exit(1)
 
         # ensure the provided command exists
         args = parser.parse_args(sys.argv[1:2])
@@ -49,96 +67,164 @@ Commands:
             parser.print_usage()
             print("\nInvalid command. "
                   "Please choose a command from the list above.")
-            exit(1)
+            sys.exit(1)
 
         # invoke the valid command's corresponding method
         getattr(self, args.command)()
 
-    def setup(self):
-        '''Obtains sample data from Kattis.com for a given problem'''
-        parser = argparse.ArgumentParser(usage='''kattis setup <problem_id>
+    def new(self):
+        """For a given Kattis problem, obtains sample data, standardizes their
+        filenames, and creates a default solution file.
+        """
+        parser = argparse.ArgumentParser(usage='''kattis new <problem_id>
 
 Arguments:
     problem_id - A valid Kattis Problem ID. Problem IDs can be found in the
-                top-right corner of a problem's description page.
+                 top-right corner of a problem's description page on
+                 open.kattis.com.
 
 ''')
-        parser.add_argument('problem_id', type=str)
+        parser.add_argument('problem_id')
 
-        # ensure that only a single problem_id has been provided
+        # ensure that a single problem_id has been provided
         if len(sys.argv) != 3:
             parser.print_usage()
             print("\nPlease provide a single Problem ID.")
-            exit(1)
+            sys.exit(1)
 
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
-        problem = Problem(args.problem_id)
-        print('''Problem ID: {}\nProblem URL: {}\n'''.format(problem.id,
-                                                             problem.url))
+        problem = Problem(args.problem_id, self.kattis_directory)
+        print("Problem ID: {}\nProblem URL: {}\n".format(problem.problem_id,
+                                                         problem.url))
 
-        # verify that the given problem exists on Kattis
+        # verify that the given problem exists on open.kattis.com
         problem.confirm_problem_exists()
 
-        # download sample data
+        # download problem sample data
         problem.download_sample_data()
 
         # standardize sample data filenames
         problem.standardize_sample_data()
 
+        # create empty solution file
+        solution_file = os.path.join(problem.directory,
+                                     '{}.py'.format(problem.problem_id))
+        open(solution_file, 'w').close()
+
+    def test(self):
+        """Tests a Kattis problem (i.e. compares a solution file's output to
+        the expected output given in a problem's sample data).
+        """
+        parser = argparse.ArgumentParser(usage='''kattis test <problem_id>
+
+Arguments:
+    problem_id - A valid Kattis Problem ID. Problem IDs can be found in the
+                 top-right corner of a problem's description page on
+                 open.kattis.com.
+''')
+        parser.add_argument('problem_id')
+
+        # ensure that a single problem_id has been provided
+        if len(sys.argv) != 3:
+            parser.print_usage()
+            print("\nPlease provide a single Problem ID.")
+            sys.exit(1)
+
+        # parse args to get Problem ID
+        args = parser.parse_args(sys.argv[2:])
+        problem = Problem(args.problem_id, self.kattis_directory)
+        print("{}Testing '{}'.{}\n".format(Colors.BOLD,
+                                           problem.problem_id,
+                                           Colors.RESET))
+
+        solution_file = '{}/{}.py'.format(problem.directory,
+                                         problem.problem_id)
+
+        # ensure solution file exists
+        if not os.path.exists(solution_file):
+            print("Solution file not found.")
+            sys.exit(1)
+
+        # get sample data files
+        input_files, output_files = problem.get_sample_data_files()
+
+        # run the solution file against each test case
+        passed = 0
+        for i, input_file in enumerate(input_files):
+            solution_output = Popen('python3 {} < {}'.format(solution_file,
+                                                             input_file),
+                                    shell=True,
+                                    stdout=PIPE)
+            expected_output = Popen('cat {}'.format(output_files[i]),
+                                    shell=True,
+                                    stdout=PIPE)
+            solution_output = solution_output.communicate()[0].decode()
+            expected_output = expected_output.communicate()[0].decode()
+
+            # print test results
+            if solution_output == expected_output:
+                print("{}{} passed! ✓{}".format(Colors.GREEN,
+                                                input_file,
+                                                Colors.RESET))
+                passed += 1
+            else:
+                print("{}{} failed! ✗{}".format(Colors.RED,
+                                                input_file,
+                                                Colors.RESET))
+                print("Expected output:\n{}".format(expected_output))
+                print("Solution output:\n{}".format(solution_output))
+
+        if passed < len(input_files):
+            print("{}{}/{} test cases passed.{}".format(Colors.RED,
+                                                        passed,
+                                                        len(input_files),
+                                                        Colors.RESET))
+        else:
+            print("\n{}All test cases passed.{}".format(Colors.GREEN,
+                                                        Colors.RESET))
+
+        sys.exit(1)
+
 
 class Problem():
-    '''
-    Represents a problem on Kattis.com
+    """
+    Represents a Kattis problem.
 
     Args:
-        problem_id (str): The Problem's ID on Kattis.com
+        problem_id (str): The problem's ID on open.kattis.com
 
     Attributes:
         url (str): The URL for the problem's description page
         directory (str): The local directory where problem data is stored
-    '''
+    """
 
-    def __init__(self, problem_id):
-        self.id = problem_id
-        self.url = 'https://open.kattis.com/problems/' + self.id
-        self.directory = "{}/{}".format(os.getcwd(), self.id)
-
-        # attempt to read config file for use in setup
-        # kattis_config = os.path.dirname(os.path.realpath(__file__)) + '/kattis.yaml'
-        # with open(kattis_config, 'r') as stream:
-        #     try:
-        #         for key, value in yaml.safe_load(stream):
-        #             print(key, value)
-        #     except yaml.YAMLError as exc:
-        #         print(exc)
-
-        # print(type(config_values))
-        # print(config_values[kattis_directory])
-        # print(config_values[default_extension])
+    def __init__(self, problem_id, kattis_directory):
+        self.problem_id = problem_id
+        self.url = 'https://open.kattis.com/problems/' + self.problem_id
+        self.directory = "{}/{}".format(os.path.expanduser(kattis_directory),
+                                        self.problem_id)
 
     def confirm_problem_exists(self):
-        '''Confirms that the problem actually exists on Kattis.com'''
+        """Confirms that the problem actually exists on open.kattis.com."""
         r = requests.get(self.url)
         if r.status_code == 404:
-            print("404 Error Received. "
-                  "Please confirm that you have entered a valid "
-                  "Kattis Problem ID.")
-            exit(1)
+            print("Problem not found.\nPlease confirm that you have entered a "
+                  "valid Kattis Problem ID.")
+            sys.exit(1)
         r.raise_for_status()  # catch other errors
 
     def download_sample_data(self):
-        '''Downloads problem's sample data and places them in the problem
-        directory
-        '''
-        print("Downloading sample data files to: "
-              "\n{}\n".format(self.directory))
+        """Downloads problem's sample data and places them in the problem's
+        directory.
+        """
+        print("Downloading sample data files to: \n{}\n".format(self.directory))
 
         # abort download if the problem directory already exists
         if os.path.isdir(self.directory):
             print("WARNING: Problem directory already exists. "
                   "Download aborted.")
-            exit(1)
+            sys.exit(1)
 
         # attempt to download the sample data .zip
         sample_data_url = self.url + '/file/statement/samples.zip'
@@ -150,21 +236,23 @@ class Problem():
             print("Download complete.\n")
         else:
             print('''There was an error downloading the sample data.
-Do the samples follow the standard Kattis format? Some problems, such as those
+Do the samples follow the usual Kattis format? Some problems, such as those
 related to machine learning, handle sample data differently.
-Please download these problems manually.''')
-            exit(1)
+Please download these problems' data manually.''')
+            sys.exit(1)
 
     def standardize_sample_data(self):
-        '''Attempts to standardize the sample data's filenames
+        """Attempts to standardize the sample data's filenames.
 
         Kattis problems' sample data don't use standard filenames, which can
         sometimes be annoying when trying to pass them into your solution.
 
         This method attempts to enumerate the sample data in the order that
-        they are given, in order to make testing problem solutions more
-        convenient.
-        '''
+        they are given, in order to make testing problem solutions more convenient.
+
+        Almost all Kattis problems' input files use the '.in' extension. This
+        method will fail if a different extension is used.
+        """
         print("Standardizing filenames...\n")
 
         # attempt to determine which file extensions are used for input/output
@@ -181,15 +269,29 @@ Please download these problems manually.''')
 
         # rename input files
         for i, file in enumerate(input_files):
-            os.rename("{}/{}".format(self.directory, file),
+            os.rename('{}/{}'.format(self.directory, file),
                       '{}/{}.in'.format(self.directory, i + 1))
 
         # rename output files
         for i, file in enumerate(output_files):
-            os.rename("{}/{}".format(self.directory, file),
+            os.rename('{}/{}'.format(self.directory, file),
                       '{}/{}.ans'.format(self.directory, i + 1))
 
         print("Standardization complete.")
+
+    def get_sample_data_files(self):
+        """Get the names of the sample data's input and output files."""
+        try:
+            files = [('{}/{}'.format(self.directory, file)) for file in os.listdir(self.directory)]
+            # extract standardized sample data
+            input_files = sorted(list(filter(lambda file: file[-3:] == '.in', files)))
+            output_files = sorted(list(filter(lambda file: file[-4:] == '.ans', files)))
+            return input_files, output_files
+
+        except FileNotFoundError:
+            print("Problem not found. Please ensure the problem directory and "
+                  "sample data exists.")
+            sys.exit(1)
 
 
 if __name__ == '__main__':
