@@ -3,8 +3,8 @@
 """
 Kattis Command Line Tools
 
-This command line interface allows users to interact with open.kattis.com in a
-more convenient manner.
+This command line interface makes writing Python solutions for open.kattis.com
+easier.
 
 Current features include:
 
