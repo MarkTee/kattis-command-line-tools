@@ -143,6 +143,11 @@ Arguments:
         # standardize sample data filenames
         problem.standardize_sample_data()
 
+        # create empty solution file
+        solution_file = os.path.join(problem.directory,
+                                     '{}.py'.format(problem.problem_id))
+        open(solution_file, 'w').close()
+
     def test(self):
         """Tests a Kattis problem (i.e. compares a solution file's output to
         the expected output given in a problem's sample data).
