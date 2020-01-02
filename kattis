@@ -41,10 +41,15 @@ class Config():
         self.values = None
         for directory in os.path.expanduser('~'), os.environ.get("KATTIS_CONF"):
             try:
-                config_path = os.path.join(directory, 'kattis.yaml')
+                config_path = os.path.join(directory, '.kattis.yaml')
                 with open(config_path) as config_file:
-                    # TODO: Ensure config's yaml is well-formed
-                    self.values = yaml.safe_load(config_file)
+                    try:
+                        self.values = yaml.safe_load(config_file)
+                    except yaml.YAMLError as exc:
+                        # ensure config file is well-formed
+                        print("Error found in .kattis.yaml.\nPlease ensure "
+                              "that your configuration file is well-formed.")
+                        sys.exit(1)
                 break
 
             except (TypeError, FileNotFoundError):
@@ -53,7 +58,7 @@ class Config():
 
         # TODO: Handle missing config files
         if self.values is None:
-            print("A config file wasn't found.")
+            print("A configuration file could not be located.")
             sys.exit(1)
 
 
