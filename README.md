@@ -1,8 +1,8 @@
 # Kattis Command Line Tools
 Helpful utilities to make working with [open.kattis.com](open.kattis.com) easier. 
 
-This command line interface automates common actions to reduce problem setup, 
-testing, and submission times by more than 50%!
+This command line interface automates common actions to reduce problem setup and 
+testing times by more than 50%!
 
 ## Usage
 
