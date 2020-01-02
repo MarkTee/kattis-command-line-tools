@@ -79,8 +79,8 @@ Commands:
             standardizing their filenames, and creating a default solution
             file.
 
-    test    Tests a Kattis problem (i.e. compares a solution file's output to
-            the expected output given in a problem's sample data).
+    test    Tests a Kattis problem (i.e. compares a solution file's outputs to
+            the expected outputs given in a problem's sample data).
 ''')
         parser.add_argument('command')
 
@@ -252,7 +252,7 @@ class Problem():
             print("Download complete.\n")
         else:
             print('''There was an error downloading the sample data.
-Do the samples follow the standard Kattis format? Some problems, such as those
+Do the samples follow the usual Kattis format? Some problems, such as those
 related to machine learning, handle sample data differently.
 Please download these problems' data manually.''')
             sys.exit(1)
