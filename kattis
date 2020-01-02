@@ -62,6 +62,16 @@ class Config():
             sys.exit(1)
 
 
+class Colors():
+    """A data class that holds ANSI escape sequences, which are used to
+    colourize terminal output.
+    """
+    BOLD = '\033[1m'
+    RESET = '\033[0m'
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+
+
 class Kattis():
     """A utility class that uses argparse to run different commands."""
 
@@ -157,7 +167,9 @@ Arguments:
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
         problem = Problem(args.problem_id, self.kattis_directory)
-        print("Testing '{}':\n".format(problem.problem_id))
+        print("{}Testing '{}'.{}\n".format(Colors.BOLD,
+                                           problem.problem_id,
+                                           Colors.RESET))
 
         solution_file = '{}/{}{}'.format(problem.directory,
                                          problem.problem_id,
@@ -165,8 +177,8 @@ Arguments:
 
         # ensure solution file exists
         if not os.path.exists(solution_file):
-            print("Solution file not found. Are you using the extension defined"
-                  " in the config file?")
+            print("Solution file not found. Are you using the extension "
+                  "defined in the config file?")
             sys.exit(1)
 
         # get sample data files
@@ -188,17 +200,24 @@ Arguments:
 
             # print test results
             if solution_output == expected_output:
-                print("\033[92m{} passed! ✓\033[0m".format(input_file))
+                print("{}{} passed! ✓{}".format(Colors.GREEN,
+                                                input_file,
+                                                Colors.RESET))
                 passed += 1
             else:
-                print("\033[91m{} failed! ✗\033[0m".format(input_file))
+                print("{}{} failed! ✗{}".format(Colors.RED,
+                                                input_file,
+                                                Colors.RESET))
                 print("Expected output:\n{}".format(expected_output))
                 print("Solution output:\n{}".format(solution_output))
-
         if passed < len(input_files):
-            print("\n\033[91m{}/{} test cases passed.\033[0m".format(passed, len(input_files)))
+            print("{}{}/{} test cases passed.{}".format(Colors.RED,
+                                                        passed,
+                                                        len(input_files),
+                                                        Colors.RESET))
         else:
-            print("\n\033[92mAll test cases passed.\033[0m")
+            print("\n{}All test cases passed.{}".format(Colors.GREEN,
+                                                        Colors.RESET))
 
         sys.exit(1)
 
@@ -264,8 +283,7 @@ Please download these problems' data manually.''')
         sometimes be annoying when trying to pass them into your solution.
 
         This method attempts to enumerate the sample data in the order that
-        they are given, in order to make manually testing problem solutions
-        more convenient.
+        they are given, in order to make testing problem solutions more convenient.
 
         Almost all Kattis problems' input files use the '.in' extension. This
         method will fail if a different extension is used.
