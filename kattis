@@ -96,6 +96,7 @@ Arguments:
         """For a given Kattis problem, obtains sample data, standardizes their
         filenames, and creates a default solution file.
         """
+        # parse problem ID
         problem = self.parse_problem()
         print("{}Problem ID: {}\n"
               "Problem URL: {}\n{}".format(BOLD,
@@ -118,27 +119,41 @@ Arguments:
         open(solution_file, 'w').close()
 
         # open solution file in user's text editor
+        print("Opening solution file in your preferred editor...")
         run(['open', solution_file], check=True)
+        print("Setup complete.")
 
     def test(self):
         """Tests a Kattis problem (i.e. compares a solution file's output to
         the expected output given in a problem's sample data).
         """
+        # parse problem ID
         problem = self.parse_problem()
-        print("{}Testing '{}'.{}\n".format(BOLD,
-                                           problem.problem_id,
-                                           RESET))
+        print("{}Running Tests...{}\n".format(BOLD, RESET))
+        print("{}Problem ID:{} '{}'.".format(BOLD,
+                                             RESET,
+                                             problem.problem_id))
+        print("{}Problem Directory:{} {}".format(BOLD,
+                                                 RESET,
+                                                 problem.directory))
 
-        solution_file = '{}/{}.py'.format(problem.directory,
-                                          problem.problem_id)
+        # ensure problem directory exists
+        if not os.path.exists(problem.directory):
+            print("\nERROR: Problem Directory not found.")
+            sys.exit(1)
 
         # ensure solution file exists
+        solution_file = os.path.join(problem.directory,
+                                     '{}.py'.format(problem.problem_id))
+        print("{}Solution File:{} {}\n".format(BOLD,
+                                               RESET,
+                                               solution_file))
         if not os.path.exists(solution_file):
-            print("Solution file not found.")
+            print("ERROR: Solution File not found. Please ensure it exists.")
             sys.exit(1)
 
         # get sample data files
-        input_files, output_files = problem.get_sample_data_files()
+        input_files, output_files = problem.get_sample_data()
 
         # run the solution file against each test case
         passed = 0
@@ -153,7 +168,7 @@ Arguments:
             solution_output = solution_output.communicate()[0].decode()
             expected_output = expected_output.communicate()[0].decode()
 
-            # print test results
+            # compare outputs and display individual test results
             if solution_output == expected_output:
                 print("{}{} passed! ✓{}".format(GREEN, input_file, RESET))
                 passed += 1
@@ -164,14 +179,14 @@ Arguments:
                 print("Expected output:\n{}".format(expected_output))
                 print("Solution output:\n{}".format(solution_output))
 
+        # display testing summary
+        print("\n{}Testing Complete{}".format(BOLD, RESET))
         if passed < len(input_files):
             print("{}{}/{} test cases passed.{}".format(RED, passed,
                                                         len(input_files),
                                                         RESET))
         else:
-            print("\n{}All test cases passed.{}".format(GREEN, RESET))
-
-        sys.exit(1)
+            print("{}All test cases passed.{}".format(GREEN, RESET))
 
 
 class Problem():
@@ -210,7 +225,7 @@ class Problem():
 
         # abort download if the problem directory already exists
         if os.path.isdir(self.directory):
-            print("WARNING: Problem directory already exists. "
+            print("\nWARNING: Problem directory already exists. "
                   "Download aborted.")
             sys.exit(1)
 
@@ -270,24 +285,25 @@ Please download these problems' data manually.''')
             os.rename('{}/{}'.format(self.directory, file),
                       '{}/{}.ans'.format(self.directory, i + 1))
 
-        print("Standardization complete.")
+        print("Standardization complete.\n")
 
-    def get_sample_data_files(self):
+    def get_sample_data(self):
         """Get the names of the sample data's input and output files."""
-        try:
-            files = [('{}/{}'.format(self.directory, file)) for
-                     file in os.listdir(self.directory)]
-            # extract standardized sample data
-            input_files = sorted(list(filter(lambda file: file[-3:] == '.in',
-                                             files)))
-            output_files = sorted(list(filter(lambda file: file[-4:] == '.ans',
-                                              files)))
-            return input_files, output_files
+        files = [('{}/{}'.format(self.directory, file)) for
+                 file in os.listdir(self.directory)]
 
-        except FileNotFoundError:
-            print("Problem not found. Please ensure the problem directory and "
-                  "sample data exists.")
+        # extract standardized sample data
+        input_files = sorted(list(filter(lambda file: file[-3:] == '.in',
+                                         files)))
+        output_files = sorted(list(filter(lambda file: file[-4:] == '.ans',
+                                          files)))
+
+        # ensure at least one input and output file exist
+        if not input_files or not output_files:
+            print("ERROR: Sample Data not found.")
             sys.exit(1)
+
+        return input_files, output_files
 
 
 if __name__ == '__main__':
