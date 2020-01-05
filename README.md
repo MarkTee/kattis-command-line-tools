@@ -19,11 +19,7 @@ outputs given by the problem's sample data).
 
 ## Limitations
 
-The diverse array of problems on Kattis introduces some limitations, which are 
-described below.
-
-The vast majority of problems should work fine, but if you notice any 
-problematic problems, please open an issue!
+The diverse array of problems on Kattis introduces some limitations:
 
 - Testing is naive (i.e. tests only pass if a solution's output exactly matches 
 the expected output). Some Kattis problems have multiple correct answers, or 
@@ -37,3 +33,6 @@ manually.
 - Some problems' sample data might use unique file extensions or naming
 conventions, which means that they will need to be manually renamed in order for 
 automated testing to work properly. 
+
+The vast majority of problems should work fine, but if you notice any 
+problematic problems, please open an issue!
