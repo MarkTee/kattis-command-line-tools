@@ -196,8 +196,9 @@ class Problem():
         """Confirms that the problem actually exists on open.kattis.com."""
         r = requests.get(self.url)
         if r.status_code == 404:
-            print("Problem not found.\nPlease confirm that you have entered a "
-                  "valid Kattis Problem ID.")
+            print("Problem not found.\n"
+                  "Please confirm that you have entered a valid "
+                  "Kattis Problem ID.")
             sys.exit(1)
         r.raise_for_status()  # catch other errors
 
@@ -205,7 +206,7 @@ class Problem():
         """Downloads problem's sample data and places them in the problem's
         directory.
         """
-        print("Downloading sample data files to:\n{}\n".format(self.directory))
+        print("Downloading sample data files to:\n{}".format(self.directory))
 
         # abort download if the problem directory already exists
         if os.path.isdir(self.directory):
@@ -222,9 +223,12 @@ class Problem():
             file.extractall(self.directory)
             print("Download complete.\n")
         else:
-            print('''There was an error downloading the sample data.
+            print('''
+There was an error downloading the sample data.
+
 Do the samples follow the usual Kattis format? Some problems, such as those
 related to machine learning, handle sample data differently.
+
 Please download these problems' data manually.''')
             sys.exit(1)
 
@@ -234,14 +238,13 @@ Please download these problems' data manually.''')
         Kattis problems' sample data don't use standard filenames, which can
         sometimes be annoying when trying to pass them into your solution.
 
-        This method attempts to enumerate the sample data in the order that
-        they are given, in order to make testing problem solutions more
-        convenient.
+        This method attempts to enumerate the sample data (in the order that
+        they are given) in order to make testing more convenient.
 
         Almost all Kattis problems' input files use the '.in' extension. This
         method will fail if a different extension is used.
         """
-        print("Standardizing filenames...\n")
+        print("Standardizing filenames...")
 
         # attempt to determine which file extensions are used for input/output
         files = os.listdir(self.directory)
@@ -249,7 +252,9 @@ Please download these problems' data manually.''')
 
         if not input_files:
             print("Unable to standardize sample data. "
-                  "Do the sample inputs end in '.in' ?")
+                  "Do the sample inputs end in '.in'?\n"
+                  "Please manually rename the files if you wish to use this "
+                  "CLI for testing.")
             return
 
         output_files = sorted([file for file in files
