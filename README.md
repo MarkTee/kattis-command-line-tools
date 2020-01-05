@@ -1,6 +1,7 @@
 # Kattis Command Line Tools
 This **unofficial** command line interface makes writing **Python** solutions 
-for [open.kattis.com](https://open.kattis.com/) easier by automating common tasks.
+for [open.kattis.com](https://open.kattis.com/) easier by automating common 
+tasks.
 
 Reduce problem setup and testing times by more than 50%!
 

@@ -24,17 +24,13 @@ import zipfile
 from subprocess import Popen, PIPE, run
 
 import requests
-import yaml
 
 
-class Colors():
-    """A data class that holds ANSI escape sequences, which are used to
-    colourize terminal output.
-    """
-    BOLD = '\033[1m'
-    RESET = '\033[0m'
-    GREEN = '\033[92m'
-    RED = '\033[91m'
+# ANSI escape sequences (used to colourize terminal output)
+BOLD = '\033[1m'
+RESET = '\033[0m'
+GREEN = '\033[92m'
+RED = '\033[91m'
 
 
 class Kattis():
@@ -137,9 +133,9 @@ Arguments:
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
         problem = Problem(args.problem_id, self.kattis_directory)
-        print("{}Testing '{}'.{}\n".format(Colors.BOLD,
+        print("{}Testing '{}'.{}\n".format(BOLD,
                                            problem.problem_id,
-                                           Colors.RESET))
+                                           RESET))
 
         solution_file = '{}/{}.py'.format(problem.directory,
                                          problem.problem_id)
@@ -167,25 +163,21 @@ Arguments:
 
             # print test results
             if solution_output == expected_output:
-                print("{}{} passed! ✓{}".format(Colors.GREEN,
-                                                input_file,
-                                                Colors.RESET))
+                print("{}{} passed! ✓{}".format(GREEN, input_file, RESET))
                 passed += 1
             else:
-                print("{}{} failed! ✗{}".format(Colors.RED,
+                print("{}{} failed! ✗{}".format(RED,
                                                 input_file,
-                                                Colors.RESET))
+                                                RESET))
                 print("Expected output:\n{}".format(expected_output))
                 print("Solution output:\n{}".format(solution_output))
 
         if passed < len(input_files):
-            print("{}{}/{} test cases passed.{}".format(Colors.RED,
-                                                        passed,
+            print("{}{}/{} test cases passed.{}".format(RED,passed,
                                                         len(input_files),
-                                                        Colors.RESET))
+                                                        RESET))
         else:
-            print("\n{}All test cases passed.{}".format(Colors.GREEN,
-                                                        Colors.RESET))
+            print("\n{}All test cases passed.{}".format(GREEN, RESET))
 
         sys.exit(1)
 
