@@ -8,11 +8,12 @@ easier.
 
 Current features include:
 
-- new:   Provisions a problem directory by downloading sample data,
-         standardizing their filenames, and creating a default solution file.
+- new:     Provisions a problem directory by downloading sample data,
+           standardizing their filenames, and opening an empty solution file in
+           the user's text editor.
 
-- test:  Tests a Kattis problem (i.e. compares a solution file's output to the
-         the expected output given in a problem's sample data).
+- test:    Tests a solution (i.e. naively compares a solution's outputs to the
+           expected outputs given by the problem's sample data).
 """
 
 import argparse
@@ -43,11 +44,11 @@ class Kattis():
 
 Commands:
     new     Provisions a problem directory by downloading sample data,
-            standardizing their filenames, and creating a default solution
-            file.
+            standardizing their filenames, and opening an empty solution file
+            in the user's text editor.
 
-    test    Tests a Kattis problem (i.e. compares a solution file's outputs to
-            the expected outputs given in a problem's sample data).
+    test    Tests a solution (i.e. naively compares a solution's outputs to the
+            expected outputs given by the problem's sample data).
 ''')
         parser.add_argument('command')
 
@@ -67,10 +68,8 @@ Commands:
         # invoke the valid command's corresponding method
         getattr(self, args.command)()
 
-    def new(self):
-        """For a given Kattis problem, obtains sample data, standardizes their
-        filenames, and creates a default solution file.
-        """
+    def parse_problem(self):
+        """Parses a Kattis Problem ID and creates a Problem object."""
         parser = argparse.ArgumentParser(usage='''kattis new <problem_id>
 
 Arguments:
@@ -90,8 +89,19 @@ Arguments:
         # parse args to get Problem ID
         args = parser.parse_args(sys.argv[2:])
         problem = Problem(args.problem_id, self.kattis_directory)
-        print("Problem ID: {}\nProblem URL: {}\n".format(problem.problem_id,
-                                                         problem.url))
+
+        return problem
+
+    def new(self):
+        """For a given Kattis problem, obtains sample data, standardizes their
+        filenames, and creates a default solution file.
+        """
+        problem = self.parse_problem()
+        print("{}Problem ID: {}\n"
+              "Problem URL: {}\n{}".format(BOLD,
+                                           problem.problem_id,
+                                           problem.url,
+                                           RESET))
 
         # verify that the given problem exists on open.kattis.com
         problem.confirm_problem_exists()
@@ -114,24 +124,7 @@ Arguments:
         """Tests a Kattis problem (i.e. compares a solution file's output to
         the expected output given in a problem's sample data).
         """
-        parser = argparse.ArgumentParser(usage='''kattis test <problem_id>
-
-Arguments:
-    problem_id - A valid Kattis Problem ID. Problem IDs can be found in the
-                 top-right corner of a problem's description page on
-                 open.kattis.com.
-''')
-        parser.add_argument('problem_id')
-
-        # ensure that a single problem_id has been provided
-        if len(sys.argv) != 3:
-            parser.print_usage()
-            print("\nPlease provide a single Problem ID.")
-            sys.exit(1)
-
-        # parse args to get Problem ID
-        args = parser.parse_args(sys.argv[2:])
-        problem = Problem(args.problem_id, self.kattis_directory)
+        problem = self.parse_problem()
         print("{}Testing '{}'.{}\n".format(BOLD,
                                            problem.problem_id,
                                            RESET))
@@ -183,7 +176,7 @@ Arguments:
 
 class Problem():
     """
-    Represents a Kattis problem.
+    Represents an open.kattis.com problem.
 
     Args:
         problem_id (str): The problem's ID on open.kattis.com
