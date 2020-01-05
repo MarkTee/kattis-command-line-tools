@@ -21,7 +21,7 @@ import os
 import sys
 import zipfile
 
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, run
 
 import requests
 import yaml
@@ -111,6 +111,9 @@ Arguments:
         solution_file = os.path.join(problem.directory,
                                      '{}.py'.format(problem.problem_id))
         open(solution_file, 'w').close()
+
+        # open solution file in user's text editor
+        run(['open', solution_file], check=True)
 
     def test(self):
         """Tests a Kattis problem (i.e. compares a solution file's output to
