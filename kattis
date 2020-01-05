@@ -20,7 +20,6 @@ import io
 import os
 import sys
 import zipfile
-
 from subprocess import Popen, PIPE, run
 
 import requests
@@ -28,9 +27,9 @@ import requests
 
 # ANSI escape sequences (used to colourize terminal output)
 BOLD = '\033[1m'
-RESET = '\033[0m'
 GREEN = '\033[92m'
 RED = '\033[91m'
+RESET = '\033[0m'
 
 
 class Kattis():
@@ -138,7 +137,7 @@ Arguments:
                                            RESET))
 
         solution_file = '{}/{}.py'.format(problem.directory,
-                                         problem.problem_id)
+                                          problem.problem_id)
 
         # ensure solution file exists
         if not os.path.exists(solution_file):
@@ -173,7 +172,7 @@ Arguments:
                 print("Solution output:\n{}".format(solution_output))
 
         if passed < len(input_files):
-            print("{}{}/{} test cases passed.{}".format(RED,passed,
+            print("{}{}/{} test cases passed.{}".format(RED, passed,
                                                         len(input_files),
                                                         RESET))
         else:
@@ -213,7 +212,7 @@ class Problem():
         """Downloads problem's sample data and places them in the problem's
         directory.
         """
-        print("Downloading sample data files to: \n{}\n".format(self.directory))
+        print("Downloading sample data files to:\n{}\n".format(self.directory))
 
         # abort download if the problem directory already exists
         if os.path.isdir(self.directory):
@@ -243,7 +242,8 @@ Please download these problems' data manually.''')
         sometimes be annoying when trying to pass them into your solution.
 
         This method attempts to enumerate the sample data in the order that
-        they are given, in order to make testing problem solutions more convenient.
+        they are given, in order to make testing problem solutions more
+        convenient.
 
         Almost all Kattis problems' input files use the '.in' extension. This
         method will fail if a different extension is used.
@@ -277,10 +277,13 @@ Please download these problems' data manually.''')
     def get_sample_data_files(self):
         """Get the names of the sample data's input and output files."""
         try:
-            files = [('{}/{}'.format(self.directory, file)) for file in os.listdir(self.directory)]
+            files = [('{}/{}'.format(self.directory, file)) for
+                     file in os.listdir(self.directory)]
             # extract standardized sample data
-            input_files = sorted(list(filter(lambda file: file[-3:] == '.in', files)))
-            output_files = sorted(list(filter(lambda file: file[-4:] == '.ans', files)))
+            input_files = sorted(list(filter(lambda file: file[-3:] == '.in',
+                                             files)))
+            output_files = sorted(list(filter(lambda file: file[-4:] == '.ans',
+                                              files)))
             return input_files, output_files
 
         except FileNotFoundError:
